@@ -6,21 +6,96 @@
  * @flow strict-local
  */
 
-import React, { PureComponent } from 'react';
-import {
-  StyleSheet,
-  View,
-  Text,
-  TouchableOpacity,
-} from 'react-native';
-import { RNCamera } from 'react-native-camera';
+import React, {PureComponent} from 'react';
+import {StyleSheet, View, Text, TouchableOpacity, Image} from 'react-native';
+import {RNCamera} from 'react-native-camera';
+import Video from 'react-native-video';
 
 class App extends PureComponent {
+  state = {
+    isRecording: false,
+    isUploaded: false,
+  };
+
   render() {
-    return (
+    return this.state.isUploaded ? (
+      <>
+        {/* 레코드된 비디오를 보여주는 코드 */}
+        {/* <Video
+          source={{uri: 'http://121.138.83.4:80/static/output.mp4'}}
+          ref={(ref) => {
+            this.player = ref;
+          }}
+          controls={true}
+          onBuffer={this.onBuffer}
+          onError={this.videoError}
+          style={styles.backgroundVideo}
+        />
+        <TouchableOpacity
+          onPress={() => {
+            this.setState({isUploaded: false});
+          }}
+          style={styles.capture}>
+          <Text>다시하기</Text>
+        </TouchableOpacity>
+        */}
+
+        {/* 포즈 이미지를 보여주는 코드 */}
+        <View style={{flex: 1}}>
+          <Image
+            source={{
+              uri: 'http://121.138.83.4:80/static/output_images/0.png',
+            }}
+          />
+          <Image
+            source={{
+              uri: 'http://121.138.83.4:80/static/output_images/1.png',
+            }}
+          />
+          <Image
+            source={{
+              uri: 'http://121.138.83.4:80/static/output_images/2.png',
+            }}
+          />
+          <Image
+            source={{
+              uri: 'http://121.138.83.4:80/static/output_images/3.png',
+            }}
+          />
+          <Image
+            source={{
+              uri: 'http://121.138.83.4:80/static/output_images/4.png',
+            }}
+          />
+          <Image
+            source={{
+              uri: 'http://121.138.83.4:80/static/output_images/5.png',
+            }}
+          />
+          <Image
+            source={{
+              uri: 'http://121.138.83.4:80/static/output_images/6.png',
+            }}
+          />
+          <Image
+            source={{
+              uri: 'http://121.138.83.4:80/static/output_images/7.png',
+            }}
+          />
+
+          <TouchableOpacity
+            onPress={() => {
+              this.setState({isUploaded: false});
+            }}
+            style={styles.capture}>
+            <Text>다시하기</Text>
+          </TouchableOpacity>
+        </View>
+      </>
+    ) : (
       <View style={styles.container}>
         <RNCamera
-          ref={ref => {
+          ref={(ref) => {
             this.camera = ref;
           }}
           style={styles.preview}
@@ -38,16 +113,18 @@ class App extends PureComponent {
             buttonPositive: 'Ok',
             buttonNegative: 'Cancel',
           }}
-          onGoogleVisionBarcodesDetected={({ barcodes }) => {
+          onGoogleVisionBarcodesDetected={({barcodes}) => {
             console.log(barcodes);
           }}
         />
-        <View style={{ flex: 0, flexDirection: 'row', justifyContent: 'center' }}>
-          <TouchableOpacity onPress={this.takeVideo.bind(this)} style={styles.capture}>
-            <Text style={{ fontSize: 14 }}> SNAP </Text>
+        <View style={{flex: 0, flexDirection: 'row', justifyContent: 'center'}}>
+          <TouchableOpacity
+            onPress={this.takeVideo.bind(this)}
+            style={styles.capture}>
+            <Text style={{fontSize: 14}}> SNAP </Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={this.stopRecord} style={styles.capture}>
-            <Text style={{ fontSize: 14 }}> STOP </Text>
+            <Text style={{fontSize: 14}}> STOP </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -58,34 +135,30 @@ class App extends PureComponent {
     if (this.camera) {
       try {
         const promise = this.camera.recordAsync();
-  
+
         if (promise) {
-          this.setState({ isRecording: true });
+          this.setState({isRecording: true});
           const data = await promise;
-          
-          console.log(data.uri)
+
+          console.log(data.uri);
           // data 를 api 로 전송
           const formData = new FormData();
           formData.append('data', {
-            name: "video_upload",
+            name: 'video_upload',
             type: 'video/mp4',
-            uri: data.uri
-          })
-          
-          try {
-            await fetch('http://121.138.83.4:80/uploads', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'multipart/form-data',
-              },
-              body: formData,
-            })
-          } catch (e) {
-            console.log(e);
-          }
-          
+            uri: data.uri,
+          });
 
-          this.setState({ isRecording: false });
+          const result = await fetch('http://121.138.83.4:80/uploads', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+            body: formData,
+          }).catch((error) => console.log(error));
+
+          this.setState({isRecording: false});
+          this.setState({isUploaded: true});
           console.warn('takeVideo', data);
         }
       } catch (e) {
@@ -98,7 +171,7 @@ class App extends PureComponent {
     if (this.state.isRecording == true) {
       this.camera.stopRecording();
     }
-  }
+  };
 }
 
 const styles = StyleSheet.create({
@@ -120,6 +193,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     alignSelf: 'center',
     margin: 20,
+  },
+  backgroundVideo: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    right: 0,
   },
 });
 
